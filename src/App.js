@@ -30,7 +30,7 @@ import {
 import AddProposalForm from "./AddProposalForm";
 
 const votingAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f"; // Remplacez par l'adresse du contrat déployé
-const ownerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // Remplacez par l'adresse de l'owner du contrat
+const ownerAddress = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"; // Remplacez par l'adresse de l'owner du contrat
 
 function App() {
   const [proposals, setProposals] = useState([]);
@@ -116,24 +116,28 @@ function App() {
   async function vote(proposalIndex) {
     if (!currentAccount) return;
     try {
+      console.log("Proposal index:", proposalIndex);
+
+      // Vérifier si l'utilisateur a déjà voté pour cette proposition
       if (votedIndices.includes(proposalIndex)) {
         alert("Vous avez déjà voté pour cette proposition.");
         return;
       }
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(votingAddress, Voting.abi, provider);
+
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(votingAddress, Voting.abi, signer);
+      const contractWithSigner = contract.connect(signer);
 
-      const transaction = await contract.vote(proposalIndex);
+      const transaction = await contractWithSigner.vote(proposalIndex);
       await transaction.wait();
-
-      await loadProposals();
       setVotedIndices([...votedIndices, proposalIndex]);
+      await loadProposals();
     } catch (error) {
+      alert("Une erreur s'est produite lors de votre vote.");
       console.log(error);
     }
   }
-
 
   async function uploadFile(event) {
     const file = event.target.files[0];
@@ -197,10 +201,12 @@ function App() {
               <ListItemText primary="Proposals"/>
             </ListItem>
 
+            {currentAccount && currentAccount.toLowerCase() === ownerAddress.toLowerCase() && (
                 <ListItem button key="Submit" onClick={handleOpenAddProposalModal}>
                   <ListItemIcon><AddBox/></ListItemIcon>
                   <ListItemText primary="Submit"/>
                 </ListItem>
+            )}
 
 
             <ListItem button key="Sign Out">
