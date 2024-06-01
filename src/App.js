@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import axios from "axios";
 import Voting from "./Voting.json";
 
-const votingAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Remplacez par l'adresse du contrat déployé
+const votingAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"; // Remplacez par l'adresse du contrat déployé
 
 function App() {
   const [proposals, setProposals] = useState([]);
@@ -83,6 +83,7 @@ function App() {
       console.log(error);
     }
   }
+
   async function vote(proposalIndex) {
     if (!currentAccount) return;
     try {
@@ -98,6 +99,7 @@ function App() {
       console.log(error);
     }
   }
+
   async function uploadFile(event) {
     const file = event.target.files[0];
     const data = new FormData();
@@ -158,4 +160,3 @@ function App() {
   );
 }
 export default App;
-
