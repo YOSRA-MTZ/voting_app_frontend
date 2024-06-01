@@ -3,13 +3,14 @@ import { ethers } from "ethers";
 import axios from "axios";
 import Voting from "./Voting.json";
 
-const votingAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"; // Remplacez par l'adresse du contrat déployé
+const votingAddress = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"; // Remplacez par l'adresse du contrat déployé
 
 function App() {
   const [proposals, setProposals] = useState([]);
   const [currentAccount, setCurrentAccount] = useState(null);
   const [newProposalName, setNewProposalName] = useState("");
   const [fileUrl, setFileUrl] = useState(null);
+  const [votedIndices, setVotedIndices] = useState([]);
 
   useEffect(() => {
     checkIfWalletIsConnected();
@@ -95,6 +96,7 @@ function App() {
       await transaction.wait();
 
       await loadProposals();
+      setVotedIndices([...votedIndices, proposalIndex]);
     } catch (error) {
       console.log(error);
     }
@@ -137,7 +139,9 @@ function App() {
                   <div key={index}>
                     <p>{proposal.name}</p>
                     <p>Vote Count: {proposal.voteCount}</p>
-                    <button onClick={() => vote(index)}>Vote</button>
+                    {!votedIndices.includes(index) && (
+                        <button onClick={() => vote(index)}>Vote</button>
+                    )}
                   </div>
               ))}
               <div>
