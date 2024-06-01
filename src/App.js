@@ -83,7 +83,21 @@ function App() {
       console.log(error);
     }
   }
+  async function vote(proposalIndex) {
+    if (!currentAccount) return;
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(votingAddress, Voting.abi, signer);
 
+      const transaction = await contract.vote(proposalIndex);
+      await transaction.wait();
+
+      await loadProposals();
+    } catch (error) {
+      console.log(error);
+    }
+  }
   async function uploadFile(event) {
     const file = event.target.files[0];
     const data = new FormData();
@@ -121,6 +135,7 @@ function App() {
                   <div key={index}>
                     <p>{proposal.name}</p>
                     <p>Vote Count: {proposal.voteCount}</p>
+                    <button onClick={() => vote(index)}>Vote</button>
                   </div>
               ))}
               <div>
