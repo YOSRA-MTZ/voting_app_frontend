@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, TextField } from "@mui/material";
-
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 function AddProposalForm({ newProposalName, setNewProposalName, fileUrl, setFileUrl, submitProposal, uploadFile }) {
     return (
         <div>
@@ -12,8 +12,16 @@ function AddProposalForm({ newProposalName, setNewProposalName, fileUrl, setFile
                 onChange={(e) => setNewProposalName(e.target.value)}
                 sx={{ mb: 2 }}
             />
-            <Button variant="contained" component="label">
-                Upload File
+            <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                sx={{ width: "100%" }}
+                startIcon={<CloudUploadIcon />}
+            >
+                Upload file
+
                 <input type="file" hidden onChange={uploadFile} />
             </Button>
             {fileUrl && (
@@ -28,7 +36,7 @@ function AddProposalForm({ newProposalName, setNewProposalName, fileUrl, setFile
                 variant="contained"
                 color="primary"
                 onClick={submitProposal}
-                sx={{ mt: 2 }}
+                sx={{ mt: 2 , marginLeft: 28 }}
             >
                 Submit Proposal
             </Button>

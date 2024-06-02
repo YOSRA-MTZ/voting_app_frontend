@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 import { Link } from "react-router-dom";
-
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/icons-material/Menu';
 import Voting from "../Voting.json";
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { styled, useTheme } from '@mui/material/styles';
 import {
     AppBar,
     Toolbar,
@@ -31,7 +34,7 @@ import {
 } from "@mui/icons-material";
 import AddProposalForm from "./AddProposalForm";
 
-const votingAddress = "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f";
+const votingAddress = "0x09635F643e140090A9A8Dcd712eD6285858ceBef";
 const ownerAddress = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199";
 
 function Proposals() {
@@ -47,7 +50,7 @@ function Proposals() {
     }, []);
 
     async function checkIfWalletIsConnected() {
-        const {ethereum} = window;
+        const { ethereum } = window;
         if (!ethereum) {
             alert("Make sure you have MetaMask!");
             return;
@@ -55,7 +58,7 @@ function Proposals() {
             console.log("We have the ethereum object", ethereum);
         }
 
-        const accounts = await ethereum.request({method: "eth_accounts"});
+        const accounts = await ethereum.request({ method: "eth_accounts" });
         if (accounts.length !== 0) {
             const account = accounts[0];
             console.log("Found an authorized account:", account);
@@ -68,12 +71,12 @@ function Proposals() {
 
     async function connectWallet() {
         try {
-            const {ethereum} = window;
+            const { ethereum } = window;
             if (!ethereum) {
                 alert("Get MetaMask!");
                 return;
             }
-            const accounts = await ethereum.request({method: "eth_requestAccounts"});
+            const accounts = await ethereum.request({ method: "eth_requestAccounts" });
             console.log("Connected", accounts[0]);
             setCurrentAccount(accounts[0]);
             await loadProposals();
@@ -115,6 +118,7 @@ function Proposals() {
             console.log(error);
         }
     }
+
     async function vote(proposalIndex) {
         if (!currentAccount) return;
         try {
@@ -167,6 +171,21 @@ function Proposals() {
         }
     }
 
+    async function deleteProposal(proposalIndex) {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(votingAddress, Voting.abi, signer);
+
+            const transaction = await contract.deleteProposal(proposalIndex);
+            await transaction.wait();
+            await loadProposals();
+        } catch (error) {
+            console.log("Une erreur s'est produite lors de la suppression de la proposition:", error);
+            alert("Une erreur s'est produite lors de la suppression de la proposition.");
+        }
+    }
+
     const handleOpenAddProposalModal = () => {
         setShowAddProposalModal(true);
     };
@@ -174,57 +193,100 @@ function Proposals() {
     const handleCloseAddProposalModal = () => {
         setShowAddProposalModal(false);
     };
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleDrawer = () => {
+        setIsOpen(!isOpen);
+    };
+    const theme = useTheme();
+    const DrawerHeader = styled('div')(({ theme }) => ({
+        display: 'flex',
+        alignItems: 'center',
+        padding: theme.spacing(0, 1),
+        // necessary for content to be below app bar
+        ...theme.mixins.toolbar,
+        justifyContent: 'flex-end',
+    }));
     return (
-        <Box sx={{display: 'flex'}}>
-            <AppBar position="fixed">
-                <Toolbar>
-                    <Typography variant="h6" noWrap>
-                        Voting App
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <Drawer
-                variant="permanent"
-                sx={{
-                    width: 240,
-                    flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: {width: 240, boxSizing: 'border-box'},
-                }}
-            >
-                <Toolbar/>
-                <List>
-                    <ListItem button key="Dashboard" component={Link} to="/dashboard">
-                        <ListItemIcon><Dashboard/></ListItemIcon>
-                        <ListItemText primary="Dashboard"/>
-                    </ListItem>
-
-                    <ListItem button key="Proposals">
-                        <ListItemIcon><HowToVote/></ListItemIcon>
-                        <ListItemText primary="Proposals"/>
-                    </ListItem>
-
-                    {currentAccount && currentAccount.toLowerCase() === ownerAddress.toLowerCase() && (
-                        <ListItem button key="Submit" onClick={handleOpenAddProposalModal}>
-                            <ListItemIcon><AddBox/></ListItemIcon>
-                            <ListItemText primary="Submit"/>
-                        </ListItem>
-                    )}
+        <Box sx={{ display: 'flex' }}>
+            {!currentAccount ? (
+                <>
+                    <AppBar position="fixed">
+                        <Toolbar>
+                            <Typography variant="h6" noWrap>
+                                Voting App
+                            </Typography>
+                        </Toolbar>
+                    </AppBar>
+                    <Box sx={{ flexGrow: 1, bgcolor: 'background.default', p: 25, justifyContent: 'center', marginTop: '20vh', marginLeft: 60 }}>
+                        <Button variant="contained" onClick={connectWallet}>
+                            Connect Wallet
+                        </Button>
+                    </Box>
+                </>
+            ) : (
+                <>
+                    <AppBar position="fixed">
+                        <Toolbar>
+                            <IconButton onClick={toggleDrawer} sx={{ mr: 2 ,color: '#fff' }}>
+                                {isOpen ? <ChevronLeftIcon /> : <Menu />}
+                            </IconButton>
+                            <Typography variant="h6" noWrap>
+                                Voting App
+                            </Typography>
+                        </Toolbar>
+                    </AppBar>
 
 
-                    <ListItem button key="Sign Out">
-                        <ListItemIcon><ExitToApp/></ListItemIcon>
-                        <ListItemText primary="Sign Out"/>
-                    </ListItem>
-                </List>
-            </Drawer>
-            <Box
-                component="main"
-                sx={{flexGrow: 1, bgcolor: 'background.default', p: 3}}
-            >
-                <Toolbar/>
-                <Grid container spacing={3}>
-                    {currentAccount ? (
-                        <>
+
+
+                    <Drawer
+                        variant="temporary"
+                        anchor="left"
+                        open={isOpen}
+                        onClose={toggleDrawer}
+                        sx={{
+                            width: 240,
+                            flexShrink: 0,
+                            '& .MuiDrawer-paper': { width: 240 },
+                        }}
+                    >
+                        <DrawerHeader>
+                            <IconButton onClick={toggleDrawer}>
+                                <ChevronLeftIcon />
+                            </IconButton>
+                        </DrawerHeader>
+                        <Toolbar />
+
+                        <List sx={{ marginTop: -8 }}>
+
+                        <ListItem button key="Dashboard" component={Link} to="/dashboard">
+                                <ListItemIcon><Dashboard /></ListItemIcon>
+                                <ListItemText primary="Dashboard" />
+                            </ListItem>
+                            <ListItem button key="Proposals" component={Link} to="/">
+                                <ListItemIcon><HowToVote /></ListItemIcon>
+                                <ListItemText primary="Proposals" />
+                            </ListItem>
+                            {currentAccount && currentAccount.toLowerCase() === ownerAddress.toLowerCase() && (
+                                <ListItem button key="Submit" onClick={handleOpenAddProposalModal}>
+                                    <ListItemIcon><AddBox /></ListItemIcon>
+                                    <ListItemText primary="Submit" />
+                                </ListItem>
+                            )}
+
+                            <ListItem button key="Sign Out">
+                                <ListItemIcon><ExitToApp /></ListItemIcon>
+                                <ListItemText primary="Sign Out" />
+                            </ListItem>
+                        </List>
+                    </Drawer>
+                    <Box
+                        component="main"
+                        sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+                    >
+                        <Toolbar />
+                        <Grid container spacing={3}>
                             {proposals.map((proposal, index) => (
                                 <Grid item xs={12} sm={6} md={4} key={index}>
                                     <Card>
@@ -243,57 +305,62 @@ function Proposals() {
                                             <Typography variant="body2" color="text.secondary">
                                                 Vote Count: {proposal.voteCount}
                                             </Typography>
-                                            {!votedIndices.includes(index) && (
-                                                <Button variant="contained" onClick={() => vote(index)}>Vote</Button>
+                                            {!votedIndices.includes(index) ? (
+                                                <>
+                                                    <Button variant="contained" onClick={() => vote(index)}>Vote</Button>
+                                                    {currentAccount.toLowerCase() === ownerAddress.toLowerCase() && (
+                                                        <Button variant="contained" sx={{ marginLeft: 4 }} onClick={() => deleteProposal(index)}>Delete</Button>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button variant="contained" onClick={() => vote(index)}>Thank u</Button>
+                                                </>
                                             )}
+
                                         </CardContent>
                                     </Card>
                                 </Grid>
                             ))}
-                        </>
-                    ) : (
-                        <Button variant="contained" onClick={connectWallet}>
-                            Connect Wallet
-                        </Button>
-                    )}
-                </Grid>
-                <Modal
-                    open={showAddProposalModal}
-                    onClose={handleCloseAddProposalModal}
-                    aria-labelledby="add-proposal-modal-title"
-                    aria-describedby="add-proposal-modal-description"
-                >
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 400,
-                            bgcolor: 'background.paper',
-                            border: '2px solid #000',
-                            boxShadow: 24,
-                            p: 4,
-                        }}
-                    >
-                        <Typography id="add-proposal-modal-title" variant="h6" component="h2">
-                            Submit a New Proposal
-                        </Typography>
-                        <AddProposalForm
-                            newProposalName={newProposalName}
-                            setNewProposalName={setNewProposalName}
-                            fileUrl={fileUrl}
-                            setFileUrl={setFileUrl}
-                            submitProposal={submitProposal}
-                            uploadFile={uploadFile}
-                        />
+                        </Grid>
+                        <Modal
+                            open={showAddProposalModal}
+                            onClose={handleCloseAddProposalModal}
+                            aria-labelledby="add-proposal-modal-title"
+                            aria-describedby="add-proposal-modal-description"
+                        >
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    width: 400,
+                                    bgcolor: 'background.paper',
+                                    border: '2px solid #000',
+                                    boxShadow: 24,
+                                    p: 4,
+                                }}
+                            >
+                                <Typography id="add-proposal-modal-title" variant="h6" component="h2">
+                                    Submit a New Proposal
+                                </Typography>
+                                <AddProposalForm
+                                    newProposalName={newProposalName}
+                                    setNewProposalName={setNewProposalName}
+                                    fileUrl={fileUrl}
+                                    setFileUrl={setFileUrl}
+                                    submitProposal={submitProposal}
+                                    uploadFile={uploadFile}
+                                />
+                            </Box>
+                        </Modal>
                     </Box>
-                </Modal>
-            </Box>
+                </>
+            )}
         </Box>
     );
 
 }
+
 export default Proposals;
-
-
