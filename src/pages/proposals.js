@@ -23,7 +23,7 @@ import {
     TextField,
     Grid,
     Box,
-    Modal
+    Modal, Container
 } from "@mui/material";
 import {
     Dashboard,
@@ -33,9 +33,11 @@ import {
     ExitToApp
 } from "@mui/icons-material";
 import AddProposalForm from "./AddProposalForm";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import voteBackground from '../images/vote.jpg'; // Import de l'image de fond
 
-const votingAddress = "0x09635F643e140090A9A8Dcd712eD6285858ceBef";
-const ownerAddress = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199";
+const votingAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const ownerAddress = "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097";
 
 function Proposals() {
     const [proposals, setProposals] = useState([]);
@@ -208,7 +210,7 @@ function Proposals() {
         justifyContent: 'flex-end',
     }));
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             {!currentAccount ? (
                 <>
                     <AppBar position="fixed">
@@ -218,8 +220,29 @@ function Proposals() {
                             </Typography>
                         </Toolbar>
                     </AppBar>
-                    <Box sx={{ flexGrow: 1, bgcolor: 'background.default', p: 25, justifyContent: 'center', marginTop: '20vh', marginLeft: 60 }}>
-                        <Button variant="contained" onClick={connectWallet}>
+                    <Box
+                        sx={{
+                            flexGrow: 1,
+                            backgroundImage: `url(${voteBackground})`, // Utilisation de l'URL relative
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            bgcolor: 'background.default',
+
+
+                        }}
+                    >
+                        <Button
+                            variant="contained"
+                            onClick={connectWallet}
+                            sx={{
+                                position: 'absolute',
+                                top: '48%',
+                                left: '65%',
+                                transform: 'translate(-50%, -50%)',
+                                opacity: 0, // Rendre le bouton invisible mais cliquable
+                                pointerEvents: 'auto',
+                            }}
+                        >
                             Connect Wallet
                         </Button>
                     </Box>
@@ -275,10 +298,7 @@ function Proposals() {
                                 </ListItem>
                             )}
 
-                            <ListItem button key="Sign Out">
-                                <ListItemIcon><ExitToApp /></ListItemIcon>
-                                <ListItemText primary="Sign Out" />
-                            </ListItem>
+
                         </List>
                     </Drawer>
                     <Box
@@ -358,6 +378,13 @@ function Proposals() {
                     </Box>
                 </>
             )}
+            <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', backgroundColor: theme.palette.background.paper }}>
+                <Container maxWidth="sm">
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                        Made with <FavoriteIcon sx={{ verticalAlign: 'middle', color: 'red' }} /> © 2024 Voting App
+                    </Typography>
+                </Container>
+            </Box>
         </Box>
     );
 

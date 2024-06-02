@@ -3,7 +3,8 @@ import { ethers } from "ethers";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Voting from "../Voting.json";
-
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import { BarChart, Bar, XAxis, YAxis } from 'recharts';
 import {
     AppBar,
     Toolbar,
@@ -19,7 +20,8 @@ import {
     Button,
     Grid,
     Box,
-    Modal
+    Modal,
+    Container
 } from "@mui/material";
 import {
     Dashboard,
@@ -32,10 +34,11 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import IconButton from "@mui/material/IconButton";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Menu from "@mui/icons-material/Menu";
-import {styled, useTheme} from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
+import voteBackground from "../images/vote.jpg";
 
-const votingAddress = "0x09635F643e140090A9A8Dcd712eD6285858ceBef";
-const ownerAddress = "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199";
+const votingAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const ownerAddress = "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#FF6384', '#36A2EB', '#FFCE56'];
 
@@ -153,6 +156,7 @@ function DashboardPage() {
     const toggleDrawer = () => {
         setIsOpen(!isOpen);
     };
+
     const theme = useTheme();
     const DrawerHeader = styled('div')(({ theme }) => ({
         display: 'flex',
@@ -162,6 +166,7 @@ function DashboardPage() {
         ...theme.mixins.toolbar,
         justifyContent: 'flex-end',
     }));
+
     const mostVotedProposal = proposals.reduce((prev, current) => {
         return (prev.voteCount > current.voteCount) ? prev : current;
     }, {});
@@ -183,7 +188,7 @@ function DashboardPage() {
     }));
 
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             {!currentAccount ? (
                 <>
                     <AppBar position="fixed">
@@ -193,8 +198,29 @@ function DashboardPage() {
                             </Typography>
                         </Toolbar>
                     </AppBar>
-                    <Box sx={{ flexGrow: 1, bgcolor: 'background.default', p: 25, justifyContent: 'center', marginTop: '20vh', marginLeft: 60 }}>
-                        <Button variant="contained" onClick={connectWallet}>
+                    <Box
+                        sx={{
+                            flexGrow: 1,
+                            backgroundImage: `url(${voteBackground})`, // Utilisation de l'URL relative
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            bgcolor: 'background.default',
+
+
+                        }}
+                    >
+                        <Button
+                            variant="contained"
+                            onClick={connectWallet}
+                            sx={{
+                                position: 'absolute',
+                                top: '48%',
+                                left: '65%',
+                                transform: 'translate(-50%, -50%)',
+                                opacity: 0, // Rendre le bouton invisible mais cliquable
+                                pointerEvents: 'auto',
+                            }}
+                        >
                             Connect Wallet
                         </Button>
                     </Box>
@@ -203,7 +229,7 @@ function DashboardPage() {
                 <>
                     <AppBar position="fixed">
                         <Toolbar>
-                            <IconButton onClick={toggleDrawer} sx={{ mr: 2 ,color: '#fff' }}>
+                            <IconButton onClick={toggleDrawer} sx={{ mr: 2, color: '#fff' }}>
                                 {isOpen ? <ChevronLeftIcon /> : <Menu />}
                             </IconButton>
                             <Typography variant="h6" noWrap>
@@ -231,7 +257,6 @@ function DashboardPage() {
                         <Toolbar />
 
                         <List sx={{ marginTop: -8 }}>
-
                             <ListItem button key="Dashboard" component={Link} to="/dashboard">
                                 <ListItemIcon><Dashboard /></ListItemIcon>
                                 <ListItemText primary="Dashboard" />
@@ -246,12 +271,10 @@ function DashboardPage() {
                                     <ListItemText primary="Submit" />
                                 </ListItem>
                             )}
-                            <ListItem button key="Sign Out">
-                                <ListItemIcon><ExitToApp /></ListItemIcon>
-                                <ListItemText primary="Sign Out" />
-                            </ListItem>
+
                         </List>
                     </Drawer>
+
                     <Box
                         component="main"
                         sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
@@ -296,13 +319,13 @@ function DashboardPage() {
                                     </CardContent>
                                 </Card>
                             </Grid>
-                            <Grid item xs={12}>
-                                <Card  >
+                            <Grid item xs={12} sm={8} md={6}>
+                                <Card>
                                     <CardContent>
                                         <Typography gutterBottom variant="h5" component="div">
                                             Votes par Candidats
                                         </Typography>
-                                        <PieChart width={400} height={400}>
+                                        <PieChart width={700} height={400}>
                                             <Pie
                                                 data={pieData}
                                                 cx="50%"
@@ -323,7 +346,24 @@ function DashboardPage() {
                                     </CardContent>
                                 </Card>
                             </Grid>
+                            <Grid item xs={12} sm={6} md={6}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h5" component="div">
+                                            Votes par Candidats
+                                        </Typography>
+                                        <BarChart width={500} height={400} data={proposals}>
+                                            <XAxis dataKey="name" />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Bar dataKey="voteCount" fill="#8884d8" /> {/* Ajout de cette ligne */}
+                                        </BarChart>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+
                         </Grid>
+
                         <Modal
                             open={showAddProposalModal}
                             onClose={handleCloseAddProposalModal}
@@ -359,6 +399,15 @@ function DashboardPage() {
                     </Box>
                 </>
             )}
+
+            <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', backgroundColor: theme.palette.background.paper }}>
+                <Container maxWidth="sm">
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                        Made with <FavoriteIcon sx={{ verticalAlign: 'middle', color: 'red' }} /> © 2024 Voting App
+                    </Typography>
+                </Container>
+            </Box>
+
         </Box>
     );
 }
