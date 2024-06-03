@@ -37,7 +37,7 @@ import Menu from "@mui/icons-material/Menu";
 import { styled, useTheme } from "@mui/material/styles";
 import voteBackground from "../images/vote.jpg";
 
-const votingAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const votingAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 const ownerAddress = "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#FF6384', '#36A2EB', '#FFCE56'];
